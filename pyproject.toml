@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contributor-sandbox-generator"
+version = "0.1.0"
+description = "Suggest contributor devcontainer, Dockerfile, and compose sandbox files."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "OSS maintainers"}]
+dependencies = []
+
+[project.scripts]
+contributor-sandbox-generator = "contributor_sandbox_generator:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["contributor_sandbox_generator*"]
+
+[project.urls]
+Homepage = "https://github.com/mySebbe/contributor-sandbox-generator"
+Repository = "https://github.com/mySebbe/contributor-sandbox-generator"
+Issues = "https://github.com/mySebbe/contributor-sandbox-generator/issues"
+Changelog = "https://github.com/mySebbe/contributor-sandbox-generator/blob/main/CHANGELOG.md"
+
+[tool.setuptools.package-data]
+"contributor_sandbox_generator" = ["py.typed"]
