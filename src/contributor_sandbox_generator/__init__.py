@@ -37,6 +37,8 @@ def detect_stack(root: str | Path) -> StackInfo:
         return StackInfo("node", ["package.json"])
     if (project_root / "go.mod").exists():
         return StackInfo("go", ["go.mod"])
+    if (project_root / "Cargo.toml").exists():
+        return StackInfo("rust", ["Cargo.toml"])
     return StackInfo("generic", [])
 
 
@@ -51,6 +53,9 @@ def generate_sandbox(root: str | Path) -> SandboxSuggestion:
     elif stack.kind == "go":
         files = _go_files()
         notes = ["Go sandbox uses the official Go image and caches modules in the container volume."]
+    elif stack.kind == "rust":
+        files = _rust_files()
+        notes = ["Rust sandbox uses the official Rust image and caches Cargo registry and target output in container volumes."]
     else:
         files = _generic_files()
         notes = ["Generic sandbox provides a Debian base with common contributor tools."]
@@ -68,6 +73,8 @@ def validate_sandbox(sandbox: SandboxSuggestion) -> list[str]:
         errors.append("devcontainer must reference Dockerfile")
     if sandbox.stack.kind == "python" and "python:3.11" not in sandbox.files.get("Dockerfile", ""):
         errors.append("python stack must use a Python 3.11 base image")
+    if sandbox.stack.kind == "rust" and "rust:" not in sandbox.files.get("Dockerfile", ""):
+        errors.append("rust stack must use an official Rust base image")
     return errors
 
 
@@ -184,6 +191,23 @@ def _go_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM golang:1.22-bookworm\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n      - go-mod:/go/pkg/mod\n    command: sleep infinity\nvolumes:\n  go-mod:\n",
+    }
+
+
+def _rust_files() -> dict[str, str]:
+    return {
+        ".devcontainer/devcontainer.json": json.dumps(
+            {
+                "name": "Rust Contributor Sandbox",
+                "build": {"dockerfile": "../Dockerfile", "context": ".."},
+                "workspaceFolder": "/workspace",
+                "postCreateCommand": "cargo fetch",
+            },
+            indent=2,
+        )
+        + "\n",
+        "Dockerfile": "FROM rust:1-bookworm\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*\n",
+        "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n      - cargo-registry:/usr/local/cargo/registry\n      - cargo-target:/workspace/target\n    command: sleep infinity\nvolumes:\n  cargo-registry:\n  cargo-target:\n",
     }
 
 
