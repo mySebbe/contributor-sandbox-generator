@@ -8,6 +8,11 @@
 
 It supports Python, Node, Go, and generic projects in v0.1.
 
+## 0.1.1 Highlights
+
+- Rust projects are now detected from `Cargo.toml`.
+- Generated Rust sandboxes include Cargo registry and target cache volumes.
+
 ## Usage
 
 Preview suggestions without writing:
