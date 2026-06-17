@@ -43,6 +43,18 @@ class ContributorSandboxGeneratorTests(unittest.TestCase):
             self.assertIn("python:3.11", sandbox.files["Dockerfile"])
             self.assertEqual([], validate_sandbox(sandbox))
 
+    def test_generates_rust_sandbox_with_cargo_caches(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Cargo.toml").write_text("[package]\nname = 'demo'\nversion = '0.1.0'\n", encoding="utf-8")
+
+            sandbox = generate_sandbox(root)
+
+            self.assertEqual("rust", sandbox.stack.kind)
+            self.assertIn("rust:", sandbox.files["Dockerfile"])
+            self.assertIn("cargo-registry", sandbox.files["docker-compose.yml"])
+            self.assertEqual([], validate_sandbox(sandbox))
+
     def test_cli_preview_does_not_write_without_write_flag(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
