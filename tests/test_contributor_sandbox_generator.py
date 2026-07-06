@@ -40,7 +40,9 @@ class ContributorSandboxGeneratorTests(unittest.TestCase):
             self.assertIn(".devcontainer/devcontainer.json", sandbox.files)
             self.assertIn("Dockerfile", sandbox.files)
             self.assertIn("docker-compose.yml", sandbox.files)
+            self.assertIn(".dockerignore", sandbox.files)
             self.assertIn("python:3.11", sandbox.files["Dockerfile"])
+            self.assertIn(".git", sandbox.files[".dockerignore"])
             self.assertEqual([], validate_sandbox(sandbox))
 
     def test_generates_rust_sandbox_with_cargo_caches(self):
@@ -53,6 +55,7 @@ class ContributorSandboxGeneratorTests(unittest.TestCase):
             self.assertEqual("rust", sandbox.stack.kind)
             self.assertIn("rust:", sandbox.files["Dockerfile"])
             self.assertIn("cargo-registry", sandbox.files["docker-compose.yml"])
+            self.assertIn("target", sandbox.files[".dockerignore"])
             self.assertEqual([], validate_sandbox(sandbox))
 
     def test_cli_preview_does_not_write_without_write_flag(self):

@@ -5,13 +5,14 @@
 - `.devcontainer/devcontainer.json`
 - `Dockerfile`
 - `docker-compose.yml`
+- `.dockerignore`
 
 It supports Python, Node, Go, and generic projects in v0.1.
 
-## 0.1.1 Highlights
+## 0.1.2 Highlights
 
-- Rust projects are now detected from `Cargo.toml`.
-- Generated Rust sandboxes include Cargo registry and target cache volumes.
+- Generated sandboxes now include a stack-aware `.dockerignore`.
+- Build contexts skip VCS metadata, virtual environments, caches, and common build output.
 
 ## Usage
 

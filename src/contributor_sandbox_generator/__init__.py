@@ -75,6 +75,8 @@ def validate_sandbox(sandbox: SandboxSuggestion) -> list[str]:
         errors.append("python stack must use a Python 3.11 base image")
     if sandbox.stack.kind == "rust" and "rust:" not in sandbox.files.get("Dockerfile", ""):
         errors.append("rust stack must use an official Rust base image")
+    if ".dockerignore" in sandbox.files and ".git" not in sandbox.files[".dockerignore"]:
+        errors.append(".dockerignore should exclude .git")
     return errors
 
 
@@ -157,6 +159,7 @@ def _python_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM python:3.11-slim\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n    command: sleep infinity\n",
+        ".dockerignore": _dockerignore(),
     }
 
 
@@ -174,6 +177,7 @@ def _node_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM node:22-bookworm-slim\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n    command: sleep infinity\n",
+        ".dockerignore": _dockerignore("node_modules", "dist", "coverage"),
     }
 
 
@@ -191,6 +195,7 @@ def _go_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM golang:1.22-bookworm\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n      - go-mod:/go/pkg/mod\n    command: sleep infinity\nvolumes:\n  go-mod:\n",
+        ".dockerignore": _dockerignore("bin"),
     }
 
 
@@ -208,6 +213,7 @@ def _rust_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM rust:1-bookworm\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n      - cargo-registry:/usr/local/cargo/registry\n      - cargo-target:/workspace/target\n    command: sleep infinity\nvolumes:\n  cargo-registry:\n  cargo-target:\n",
+        ".dockerignore": _dockerignore("target"),
     }
 
 
@@ -224,7 +230,28 @@ def _generic_files() -> dict[str, str]:
         + "\n",
         "Dockerfile": "FROM debian:bookworm-slim\nWORKDIR /workspace\nRUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates curl make && rm -rf /var/lib/apt/lists/*\n",
         "docker-compose.yml": "services:\n  sandbox:\n    build: .\n    volumes:\n      - .:/workspace\n    command: sleep infinity\n",
+        ".dockerignore": _dockerignore(),
     }
+
+
+def _dockerignore(*extra_patterns: str) -> str:
+    patterns = [
+        ".git",
+        ".hg",
+        ".svn",
+        ".DS_Store",
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".mypy_cache",
+        ".tox",
+        ".venv",
+        "venv",
+        "build",
+        "dist",
+        *extra_patterns,
+    ]
+    return "\n".join(dict.fromkeys(patterns)) + "\n"
 
 
 __all__ = ["__version__", "SandboxSuggestion", "StackInfo", "detect_stack", "generate_sandbox", "main", "validate_sandbox"]
