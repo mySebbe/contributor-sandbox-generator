@@ -6,7 +6,11 @@ The format is based on Keep a Changelog, and this project uses semantic versioni
 
 ## [Unreleased]
 
-- No unreleased changes yet.
+- Generated containers now use non-root identities, drop capabilities, and enable
+  `no-new-privileges` across devcontainer and Compose output.
+- Added validated `--image`, `--uid`, `--gid`, and `--build-context` controls.
+- Added a minimal no-source build context and expanded secret/state exclusions for source builds.
+- Hardened writes against traversal, symlink components, partial output, and accidental overwrite.
 
 ## [0.1.2] - 2026-07-06
 
