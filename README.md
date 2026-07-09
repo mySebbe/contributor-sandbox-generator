@@ -28,7 +28,17 @@ Write generated files:
 python -m contributor_sandbox_generator --write /path/to/project
 ```
 
-The write mode refuses to overwrite existing sandbox files.
+Generated containers run as a validated non-root UID/GID, drop all Linux capabilities, and enable
+`no-new-privileges`. The default `minimal` build context sends only Dockerfile metadata. Projects
+that need source during image builds can opt into a denylist-protected context:
+
+```bash
+python -m contributor_sandbox_generator /path/to/project --build-context source --uid 1000 --gid 1000
+python -m contributor_sandbox_generator /path/to/project --image python@sha256:<digest>
+```
+
+Image references are validated before they are rendered into a Dockerfile. Write mode refuses
+existing files and symlinked path components, and file output is atomic.
 
 ## Development
 
